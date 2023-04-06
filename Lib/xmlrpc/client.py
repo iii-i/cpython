@@ -140,8 +140,10 @@ import errno
 from io import BytesIO
 try:
     import gzip
+    import zlib
 except ImportError:
     gzip = None #python can be built without zlib/gzip support
+    zlib = None
 
 # --------------------------------------------------------------------
 # Internal stuff
@@ -1067,7 +1069,7 @@ def gzip_decode(data, max_decode=20971520):
 
     Decode data using the gzip content encoding as described in RFC 1952
     """
-    if not gzip:
+    if not gzip or not zlib:
         raise NotImplementedError
     with gzip.GzipFile(mode="rb", fileobj=BytesIO(data)) as gzf:
         try:
@@ -1075,7 +1077,7 @@ def gzip_decode(data, max_decode=20971520):
                 decoded = gzf.read()
             else:
                 decoded = gzf.read(max_decode + 1)
-        except OSError:
+        except (OSError, zlib.error):
             raise ValueError("invalid data")
     if max_decode >= 0 and len(decoded) > max_decode:
         raise ValueError("max gzipped payload length exceeded")

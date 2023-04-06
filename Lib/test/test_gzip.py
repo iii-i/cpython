@@ -9,6 +9,7 @@ import pathlib
 import struct
 import sys
 import unittest
+import zlib
 from subprocess import PIPE, Popen
 from test.support import import_helper
 from test.support import os_helper
@@ -429,7 +430,8 @@ class TestGzip(BaseTest):
         with open(self.filename, 'wb') as file:
             file.write(data1 * 50)
         with gzip.GzipFile(self.filename, 'r') as file:
-            self.assertRaises(gzip.BadGzipFile, file.readlines)
+            self.assertRaises((gzip.BadGzipFile, EOFError, zlib.error),
+                              file.readlines)
 
     def test_non_seekable_file(self):
         uncompressed = data1 * 50
